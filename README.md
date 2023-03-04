@@ -8,10 +8,10 @@ This repository is very useful for someone who wants to learn backend web develo
 
 ## Features
 
-1. Endpoint API to perform CRUD (Create, Read, Update, Delete) on User data.
-2. Endpoint API to perform CRUD (Create, Read, Update, Delete) on Product data.
+1. API Endpoint to perform CRUD (Create, Read, Update, Delete) on User data.
+2. API Endpoint to perform CRUD (Create, Read, Update, Delete) on Product data.
 3. API Endpoint to perform CRUD (Create, Read, Update, Delete) on each User's Cart data.
-4. Endpoint API to perform CRUD (Create, Read, Update, Delete) on each User's Transaction data.
+4. API Endpoint to perform CRUD (Create, Read, Update, Delete) on each User's Transaction data.
 5. API Endpoint for Login and Register.
 6. Password Hashing Middleware for each User using [Bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt).
 7. Middleware Upload File to upload files from user input files.
