@@ -2,7 +2,7 @@
 
 A clean structure for the API Endpoint of an e-commerce that sells coffee grounds, namely WaysBeans.
 
-This Endpoint API is fully built using the [GO](https://go.dev/) programming language with the [Echo](https://echo.labstack.com/) framework and the [GORM](https://gorm.io/) ORM library.
+This Endpoint API is fully built using the [GO](https://go.dev/) programming language with the [Echo](https://echo.labstack.com/) framework, the [GORM](https://gorm.io/) ORM library, and [MySQL](https://www.mysql.com/) as the database.
 
 This repository is very useful for someone who wants to learn backend web development by building API Endpoints.
 
