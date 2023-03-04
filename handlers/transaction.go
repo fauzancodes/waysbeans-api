@@ -15,10 +15,16 @@ import (
 
 type handlerTransaction struct {
 	TransactionRepository repositories.TransactionRepository
+	UserRepository        repositories.UserRepository
+	ProductRepository     repositories.ProductRepository
 }
 
-func HandlerTransaction(TransactionRepository repositories.TransactionRepository) *handlerTransaction {
-	return &handlerTransaction{TransactionRepository}
+func HandlerTransaction(TransactionRepository repositories.TransactionRepository, UserRepository repositories.UserRepository, ProductRepository repositories.ProductRepository) *handlerTransaction {
+	return &handlerTransaction{
+		TransactionRepository: TransactionRepository,
+		UserRepository:        UserRepository,
+		ProductRepository:     ProductRepository,
+	}
 }
 
 func (h *handlerTransaction) FindTransactions(c echo.Context) error {
@@ -59,12 +65,31 @@ func (h *handlerTransaction) CreateTransaction(c echo.Context) error {
 
 	userLogin := c.Get("userLogin")
 	userId := userLogin.(jwt.MapClaims)["id"].(float64)
-	productId, _ := strconv.Atoi(c.Param("product_id"))
+
+	user, err := h.UserRepository.GetUser(int(userId))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	userCart := user.Cart
+	totalQuantity := 0
+	for _, cart := range userCart {
+		totalQuantity += cart.OrderQuantity
+	}
+	totalPrice := 0
+	for _, cart := range userCart {
+		product, err := h.ProductRepository.GetProduct(cart.ProductID)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+		}
+		multiplied := cart.OrderQuantity * product.Price
+		totalPrice += multiplied
+	}
 
 	transaction := models.Transaction{
-		ProductID:     productId,
-		OrderQuantity: request.OrderQuantity,
 		UserID:        int(userId),
+		User:          user,
+		TotalQuantity: totalQuantity,
+		TotalPrice:    totalPrice,
 	}
 
 	data, err := h.TransactionRepository.CreateTransaction(transaction)
@@ -75,63 +100,10 @@ func (h *handlerTransaction) CreateTransaction(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Transaction data created successfully", Data: convertResponseTransaction(data)})
 }
 
-func (h *handlerTransaction) UpdateTransaction(c echo.Context) error {
-	request := new(transactionsdto.TransactionRequest)
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
-
-	id, _ := strconv.Atoi(c.Param("id"))
-
-	transaction, err := h.TransactionRepository.GetTransaction(id)
-
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
-
-	if request.ProductID != 0 {
-		transaction.ProductID = request.ProductID
-	}
-
-	if request.OrderQuantity != 0 {
-		transaction.OrderQuantity = request.OrderQuantity
-	}
-
-	userLogin := c.Get("userLogin")
-	userId := userLogin.(jwt.MapClaims)["id"].(float64)
-
-	if request.UserID != 0 {
-		transaction.UserID = int(userId)
-	}
-
-	data, err := h.TransactionRepository.UpdateTransaction(transaction)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Transaction data updated successfully", Data: convertResponseTransaction(data)})
-}
-
-func (h *handlerTransaction) DeleteTransaction(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
-
-	transaction, err := h.TransactionRepository.GetTransaction(id)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
-
-	data, err := h.TransactionRepository.DeleteTransaction(transaction)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Transaction data updated successfully", Data: convertResponseTransaction(data)})
-}
-
 func convertResponseTransaction(u models.Transaction) transactionsdto.TransactionResponse {
 	return transactionsdto.TransactionResponse{
-		ProductID:     u.ProductID,
-		OrderQuantity: u.OrderQuantity,
 		UserID:        u.UserID,
+		TotalQuantity: u.TotalQuantity,
+		TotalPrice:    u.TotalPrice,
 	}
 }

@@ -27,20 +27,10 @@ type UsersCartResponse struct {
 	Name    string `json:"name"`
 }
 
-type UsersTransactionResponse struct {
-	ID      int    `json:"id"`
-	IsAdmin bool   `json:"is_admin"`
-	Name    string `json:"name"`
-}
-
 func (UsersProfileResponse) TableName() string {
 	return "users"
 }
 
 func (UsersCartResponse) TableName() string {
-	return "users"
-}
-
-func (UsersTransactionResponse) TableName() string {
 	return "users"
 }
