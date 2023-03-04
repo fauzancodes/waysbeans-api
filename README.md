@@ -6,7 +6,7 @@ This Endpoint API is fully built using the [GO](https://go.dev/) programming lan
 
 This repository is very useful for someone who wants to learn backend web development by building API Endpoints.
 
-## Features
+### Available features:
 
 1. API Endpoint to perform CRUD (Create, Read, Update, Delete) on User data.
 2. API Endpoint to perform CRUD (Create, Read, Update, Delete) on Product data.
