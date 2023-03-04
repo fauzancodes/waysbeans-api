@@ -28,15 +28,21 @@ func HandlerTransaction(TransactionRepository repositories.TransactionRepository
 }
 
 func (h *handlerTransaction) FindTransactions(c echo.Context) error {
-	transactions, err := h.TransactionRepository.FindTransactions()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
+	userLogin := c.Get("userLogin")
+	userAdmin := userLogin.(jwt.MapClaims)["is_admin"].(bool)
+	if userAdmin {
+		transactions, err := h.TransactionRepository.FindTransactions()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+		}
 
-	if len(transactions) > 0 {
-		return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Data for all transactions was successfully obtained", Data: transactions})
+		if len(transactions) > 0 {
+			return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Data for all transactions was successfully obtained", Data: transactions})
+		} else {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: "No record found"})
+		}
 	} else {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: "No record found"})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResult{Status: http.StatusUnauthorized, Message: "Sorry, you're not Admin"})
 	}
 }
 

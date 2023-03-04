@@ -22,15 +22,21 @@ func HandlerCart(CartRepository repositories.CartRepository) *handlerCart {
 }
 
 func (h *handlerCart) FindCarts(c echo.Context) error {
-	carts, err := h.CartRepository.FindCarts()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
+	userLogin := c.Get("userLogin")
+	userAdmin := userLogin.(jwt.MapClaims)["is_admin"].(bool)
+	if userAdmin {
+		carts, err := h.CartRepository.FindCarts()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+		}
 
-	if len(carts) > 0 {
-		return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Data for all carts was successfully obtained", Data: carts})
+		if len(carts) > 0 {
+			return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Data for all carts was successfully obtained", Data: carts})
+		} else {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: "No record found"})
+		}
 	} else {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: "No record found"})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResult{Status: http.StatusUnauthorized, Message: "Sorry, you're not Admin"})
 	}
 }
 

@@ -40,7 +40,11 @@ func (h *handlerProfile) CreateProfile(c echo.Context) error {
 	dataFile := c.Get("dataFile").(string)
 	fmt.Println("this is data file", dataFile)
 
+	userLogin := c.Get("userLogin")
+	userId := userLogin.(jwt.MapClaims)["id"].(float64)
+
 	request := profiledto.ProfileRequest{
+		ID:      int(userId),
 		Photo:   dataFile,
 		Phone:   c.FormValue("phone"),
 		Address: c.FormValue("address"),
@@ -52,10 +56,8 @@ func (h *handlerProfile) CreateProfile(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
 	}
 
-	userLogin := c.Get("userLogin")
-	userId := userLogin.(jwt.MapClaims)["id"].(float64)
-
 	profile := models.Profile{
+		ID:      request.ID,
 		Photo:   request.Photo,
 		Phone:   request.Phone,
 		Address: request.Address,
@@ -89,20 +91,29 @@ func (h *handlerProfile) UpdateProfile(c echo.Context) error {
 	dataFile := c.Get("dataFile").(string)
 	fmt.Println("this is data file", dataFile)
 
+	userLogin := c.Get("userLogin")
+	userId := userLogin.(jwt.MapClaims)["id"].(float64)
+
 	request := profiledto.ProfileRequest{
+		ID:      int(userId),
 		Photo:   dataFile,
 		Phone:   c.FormValue("phone"),
 		Address: c.FormValue("address"),
 	}
 
-	userLogin := c.Get("userLogin")
-	userId := userLogin.(jwt.MapClaims)["id"].(float64)
+	validation := validator.New()
+	err := validation.Struct(request)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
+	}
 
 	user, err := h.ProfileRepository.GetProfile(int(userId))
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}
+
+	user.ID = request.ID
 
 	if request.Photo != "" {
 		fileName := user.Photo

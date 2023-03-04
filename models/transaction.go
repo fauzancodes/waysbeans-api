@@ -13,6 +13,7 @@ type Transaction struct {
 }
 
 type TransactionUSerResponse struct {
+	UserID        int  `json:"user_id"`
 	User          User `json:"user"`
 	TotalQuantity int  `json:"total_quantity"`
 	TotalPrice    int  `json:"total_price"`

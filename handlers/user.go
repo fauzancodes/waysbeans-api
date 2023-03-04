@@ -8,6 +8,7 @@ import (
 	"waysbeans/models"
 	"waysbeans/repositories"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,15 +21,21 @@ func HandlerUser(UserRepository repositories.UserRepository) *handler {
 }
 
 func (h *handler) FindUsers(c echo.Context) error {
-	users, err := h.UserRepository.FindUsers()
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
+	userLogin := c.Get("userLogin")
+	userAdmin := userLogin.(jwt.MapClaims)["is_admin"].(bool)
+	if userAdmin {
+		users, err := h.UserRepository.FindUsers()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+		}
 
-	if len(users) > 0 {
-		return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Data for all users was successfully obtained", Data: users})
+		if len(users) > 0 {
+			return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Data for all users was successfully obtained", Data: users})
+		} else {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: "No record found"})
+		}
 	} else {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: "No record found"})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResult{Status: http.StatusUnauthorized, Message: "Sorry, you're not Admin"})
 	}
 }
 
