@@ -71,19 +71,6 @@ func (h *handlerProfile) CreateProfile(c echo.Context) error {
 
 	profile, _ = h.ProfileRepository.GetProfile(profile.ID)
 
-	fileName := profile.Photo
-	dirPath := "uploads"
-
-	filePath := fmt.Sprintf("%s/%s", dirPath, fileName)
-
-	err = os.Remove(filePath)
-	if err != nil {
-		fmt.Println("Failed to delete file"+fileName+":", err)
-		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
-	}
-
-	fmt.Println("File " + fileName + " deleted successfully")
-
 	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Profile data created successfully", Data: convertResponseProfile(profile)})
 }
 
@@ -154,6 +141,19 @@ func (h *handlerProfile) DeleteProfile(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}
+
+	fileName := user.Photo
+	dirPath := "uploads"
+
+	filePath := fmt.Sprintf("%s/%s", dirPath, fileName)
+
+	err = os.Remove(filePath)
+	if err != nil {
+		fmt.Println("Failed to delete file"+fileName+":", err)
+		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
+	}
+
+	fmt.Println("File " + fileName + " deleted successfully")
 
 	data, err := h.ProfileRepository.DeleteProfile(user)
 	if err != nil {

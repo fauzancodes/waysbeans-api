@@ -51,14 +51,15 @@ func (h *handler) GetUser(c echo.Context) error {
 }
 
 func (h *handler) UpdateUser(c echo.Context) error {
+	userLogin := c.Get("userLogin")
+	userId := userLogin.(jwt.MapClaims)["id"].(float64)
+
 	request := new(usersdto.UpdateUserRequest)
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}
 
-	id, _ := strconv.Atoi(c.Param("id"))
-
-	user, err := h.UserRepository.GetUser(id)
+	user, err := h.UserRepository.GetUser(int(userId))
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
@@ -87,9 +88,10 @@ func (h *handler) UpdateUser(c echo.Context) error {
 }
 
 func (h *handler) DeleteUser(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
+	userLogin := c.Get("userLogin")
+	userId := userLogin.(jwt.MapClaims)["id"].(float64)
 
-	user, err := h.UserRepository.GetUser(id)
+	user, err := h.UserRepository.GetUser(int(userId))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}
