@@ -18,14 +18,14 @@ func RepositoryTransaction(db *gorm.DB) *repository {
 
 func (r *repository) FindTransactions() ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	err := r.db.Preload("User").Find(&transactions).Error // add this code
+	err := r.db.Preload("User").Preload("Cart").Find(&transactions).Error // add this code
 
 	return transactions, err
 }
 
 func (r *repository) GetTransaction(ID int) (models.Transaction, error) {
 	var transaction models.Transaction
-	err := r.db.Preload("User").First(&transaction, ID).Error // add this code
+	err := r.db.Preload("User").Preload("Cart").First(&transaction, ID).Error // add this code
 
 	return transaction, err
 }

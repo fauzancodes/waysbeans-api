@@ -91,9 +91,27 @@ func (h *handlerTransaction) CreateTransaction(c echo.Context) error {
 		totalPrice += multiplied
 	}
 
+	var userTransaction models.UserTransactionResponse
+	userTransaction.ID = user.ID
+	userTransaction.Name = user.Name
+	userTransaction.Email = user.Email
+
+	var cartTransaction []models.CartTransactionResponse
+	for _, cart := range userCart {
+		product, err := h.ProductRepository.GetProduct(cart.ProductID)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+		}
+		var cartNew models.CartTransactionResponse
+		cartNew.ProductID = product.ID
+		cartNew.OrderQuantity = cart.OrderQuantity
+		cartTransaction = append(cartTransaction, cartNew)
+	}
+
 	transaction := models.Transaction{
 		UserID:        int(userId),
-		User:          user,
+		User:          userTransaction,
+		Cart:          cartTransaction,
 		TotalQuantity: totalQuantity,
 		TotalPrice:    totalPrice,
 	}
