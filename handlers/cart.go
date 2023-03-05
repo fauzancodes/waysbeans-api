@@ -139,20 +139,21 @@ func (h *handlerCart) DeleteCart(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}
+	cartOrderQuantity := cart.OrderQuantity
+
+	data, err := h.CartRepository.DeleteCart(cart)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
+	}
 
 	product, err := h.ProductRepository.GetProduct(cart.ProductID)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}
-	product.Stock = product.Stock + cart.OrderQuantity
+	product.Stock = product.Stock + cartOrderQuantity
 	_, err = h.ProductRepository.UpdateProduct(product)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
-	}
-
-	data, err := h.CartRepository.DeleteCart(cart)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Cart data updated successfully", Data: convertResponseCart(data)})
