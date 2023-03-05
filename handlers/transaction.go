@@ -17,13 +17,15 @@ type handlerTransaction struct {
 	TransactionRepository repositories.TransactionRepository
 	UserRepository        repositories.UserRepository
 	ProductRepository     repositories.ProductRepository
+	CartRepository        repositories.CartRepository
 }
 
-func HandlerTransaction(TransactionRepository repositories.TransactionRepository, UserRepository repositories.UserRepository, ProductRepository repositories.ProductRepository) *handlerTransaction {
+func HandlerTransaction(TransactionRepository repositories.TransactionRepository, UserRepository repositories.UserRepository, ProductRepository repositories.ProductRepository, CartRepository repositories.CartRepository) *handlerTransaction {
 	return &handlerTransaction{
 		TransactionRepository: TransactionRepository,
 		UserRepository:        UserRepository,
 		ProductRepository:     ProductRepository,
+		CartRepository:        CartRepository,
 	}
 }
 
@@ -121,6 +123,23 @@ func (h *handlerTransaction) CreateTransaction(c echo.Context) error {
 	data, err := h.TransactionRepository.CreateTransaction(transaction)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
+	}
+
+	carts, err := h.CartRepository.FindCarts()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	for _, cart := range carts {
+		if cart.UserID == int(userId) {
+			cartToDelete, err := h.CartRepository.GetCart(cart.ID)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+			_, err = h.CartRepository.DeleteCart(cartToDelete)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+		}
 	}
 
 	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Transaction data created successfully", Data: convertResponseTransaction(data)})
