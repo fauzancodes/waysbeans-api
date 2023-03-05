@@ -11,7 +11,10 @@ import (
 
 func UserRoutes(e *echo.Group) {
 	userRepository := repositories.RepositoryUser(mysql.DB)
-	h := handlers.HandlerUser(userRepository)
+	profileRepository := repositories.RepositoryProfile(mysql.DB)
+	cartRepository := repositories.RepositoryCart(mysql.DB)
+	transactionRepository := repositories.RepositoryTransaction(mysql.DB)
+	h := handlers.HandlerUser(userRepository, profileRepository, cartRepository, transactionRepository)
 
 	e.GET("/users", middleware.Auth(h.FindUsers))
 	e.GET("/user/:id", middleware.Auth(h.GetUser))

@@ -13,11 +13,19 @@ import (
 )
 
 type handler struct {
-	UserRepository repositories.UserRepository
+	UserRepository        repositories.UserRepository
+	ProfileRepository     repositories.ProfileRepository
+	CartRepository        repositories.CartRepository
+	TransactionRepository repositories.TransactionRepository
 }
 
-func HandlerUser(UserRepository repositories.UserRepository) *handler {
-	return &handler{UserRepository}
+func HandlerUser(UserRepository repositories.UserRepository, ProfileRepository repositories.ProfileRepository, CartRepository repositories.CartRepository, TransactionRepository repositories.TransactionRepository) *handler {
+	return &handler{
+		UserRepository:        UserRepository,
+		ProfileRepository:     ProfileRepository,
+		CartRepository:        CartRepository,
+		TransactionRepository: TransactionRepository,
+	}
 }
 
 func (h *handler) FindUsers(c echo.Context) error {
@@ -90,6 +98,57 @@ func (h *handler) UpdateUser(c echo.Context) error {
 func (h *handler) DeleteUser(c echo.Context) error {
 	userLogin := c.Get("userLogin")
 	userId := userLogin.(jwt.MapClaims)["id"].(float64)
+
+	profiles, err := h.ProfileRepository.FindProfiles()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	for _, profile := range profiles {
+		if profile.UserID == int(userId) {
+			userProfile, err := h.ProfileRepository.GetProfile(profile.ID)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+			_, err = h.ProfileRepository.DeleteProfile(userProfile)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+		}
+	}
+
+	carts, err := h.CartRepository.FindCarts()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	for _, cart := range carts {
+		if cart.UserID == int(userId) {
+			userCart, err := h.CartRepository.GetCart(cart.ID)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+			_, err = h.CartRepository.DeleteCart(userCart)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+		}
+	}
+
+	transactions, err := h.TransactionRepository.FindTransactions()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	for _, transaction := range transactions {
+		if transaction.UserID == int(userId) {
+			userTransaction, err := h.TransactionRepository.GetTransaction(transaction.ID)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+			_, err = h.TransactionRepository.DeleteTransaction(userTransaction)
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+			}
+		}
+	}
 
 	user, err := h.UserRepository.GetUser(int(userId))
 	if err != nil {
