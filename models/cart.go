@@ -4,9 +4,9 @@ import "time"
 
 type Cart struct {
 	ID            int                 `json:"id" gorm:"primary_key:auto_increment"`
-	UserID        int                 `json:"user_id"`
+	UserID        int                 `json:"user_id" gorm:"type: int"`
 	User          UsersCartResponse   `json:"user"`
-	ProductID     int                 `json:"product_id"`
+	ProductID     int                 `json:"product_id" gorm:"type: int"`
 	Product       ProductCartResponse `json:"product"`
 	OrderQuantity int                 `json:"order_quantity" gorm:"type: int"`
 	TransactionID int                 `json:"-"`
@@ -15,22 +15,16 @@ type Cart struct {
 }
 
 type CartUSerResponse struct {
-	ProductID     int `json:"product_id" gorm:"type: int"`
-	OrderQuantity int `json:"order_quantity" gorm:"type: int"`
+	ProductID     int `json:"product_id"`
+	OrderQuantity int `json:"order_quantity"`
 	UserID        int `json:"-"`
 }
 
 type CartProductResponse struct {
 	ProductID     int                 `json:"-"`
 	Product       ProductCartResponse `json:"product"`
-	OrderQuantity int                 `json:"order_quantity" gorm:"type: int"`
-	UserID        int                 `json:"user_id" gorm:"type: int"`
-}
-
-type CartTransactionResponse struct {
-	ProductID     int `json:"product_id"`
-	OrderQuantity int `json:"order_quantity" gorm:"type: int"`
-	TransactionID int `json:"-"`
+	OrderQuantity int                 `json:"order_quantity"`
+	UserID        int                 `json:"user_id"`
 }
 
 func (CartUSerResponse) TableName() string {
@@ -38,9 +32,5 @@ func (CartUSerResponse) TableName() string {
 }
 
 func (CartProductResponse) TableName() string {
-	return "carts"
-}
-
-func (CartTransactionResponse) TableName() string {
 	return "carts"
 }
