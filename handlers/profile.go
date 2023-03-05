@@ -147,6 +147,11 @@ func (h *handlerProfile) DeleteProfile(c echo.Context) error {
 
 	filePath := fmt.Sprintf("%s/%s", dirPath, fileName)
 
+	data, err := h.ProfileRepository.DeleteProfile(user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
+	}
+
 	err = os.Remove(filePath)
 	if err != nil {
 		fmt.Println("Failed to delete file"+fileName+":", err)
@@ -154,11 +159,6 @@ func (h *handlerProfile) DeleteProfile(c echo.Context) error {
 	}
 
 	fmt.Println("File " + fileName + " deleted successfully")
-
-	data, err := h.ProfileRepository.DeleteProfile(user)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.ErrorResult{Status: http.StatusInternalServerError, Message: err.Error()})
-	}
 
 	return c.JSON(http.StatusOK, dto.SuccessResult{Status: http.StatusOK, Message: "Profile data deleted successfully", Data: convertResponseProfile(data)})
 }

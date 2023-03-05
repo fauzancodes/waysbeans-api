@@ -14,11 +14,15 @@ import (
 )
 
 type handlerCart struct {
-	CartRepository repositories.CartRepository
+	CartRepository    repositories.CartRepository
+	ProductRepository repositories.ProductRepository
 }
 
-func HandlerCart(CartRepository repositories.CartRepository) *handlerCart {
-	return &handlerCart{CartRepository}
+func HandlerCart(CartRepository repositories.CartRepository, ProductRepository repositories.ProductRepository) *handlerCart {
+	return &handlerCart{
+		CartRepository:    CartRepository,
+		ProductRepository: ProductRepository,
+	}
 }
 
 func (h *handlerCart) FindCarts(c echo.Context) error {
@@ -66,6 +70,16 @@ func (h *handlerCart) CreateCart(c echo.Context) error {
 	userLogin := c.Get("userLogin")
 	userId := userLogin.(jwt.MapClaims)["id"].(float64)
 	productId, _ := strconv.Atoi(c.Param("product_id"))
+
+	product, err := h.ProductRepository.GetProduct(productId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	product.Stock = product.Stock - request.OrderQuantity
+	_, err = h.ProductRepository.UpdateProduct(product)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
 
 	cart := models.Cart{
 		ProductID:     productId,
@@ -122,6 +136,16 @@ func (h *handlerCart) DeleteCart(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	cart, err := h.CartRepository.GetCart(id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+
+	product, err := h.ProductRepository.GetProduct(cart.ProductID)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+	product.Stock = product.Stock + cart.OrderQuantity
+	_, err = h.ProductRepository.UpdateProduct(product)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.ErrorResult{Status: http.StatusBadRequest, Message: err.Error()})
 	}

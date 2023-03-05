@@ -11,7 +11,8 @@ import (
 
 func CartRoutes(e *echo.Group) {
 	cartRepository := repositories.RepositoryCart(mysql.DB)
-	h := handlers.HandlerCart(cartRepository)
+	productRepository := repositories.RepositoryProduct(mysql.DB)
+	h := handlers.HandlerCart(cartRepository, productRepository)
 
 	e.GET("/carts", middleware.Auth(h.FindCarts))
 	e.GET("/cart/:id", middleware.Auth(h.GetCart))
