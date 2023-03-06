@@ -15,7 +15,6 @@ type Result struct {
 	Message string      `json:"message"`
 }
 
-// Create Auth function here ...
 func Auth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		token := c.Request().Header.Get("Authorization")
