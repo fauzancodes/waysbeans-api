@@ -5,5 +5,5 @@ type ProductTransaction struct {
 	ProductName   string `json:"product_name"`
 	ProductPrice  int    `json:"product_price"`
 	OrderQuantity int    `json:"order_quantity"`
-	TransactionID int    `json:"-" gorm:"AUTO_INCREMENT"`
+	TransactionID int    `json:"-"`
 }
