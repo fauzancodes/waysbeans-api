@@ -17,7 +17,7 @@ func UploadFile(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		ext := filepath.Ext(file.Filename)
-		if ext != ".png" || ext != ".jpg" || ext != ".jpeg" || ext != ".webp" {
+		if ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" {
 			return c.JSON(http.StatusBadRequest, "The file extension is wrong. Allowed file extensions are images (.png, .jpg, .jpeg, .webp)")
 		}
 
