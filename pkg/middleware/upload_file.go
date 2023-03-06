@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 
 	"github.com/labstack/echo/v4"
 )
@@ -13,6 +14,11 @@ func UploadFile(next echo.HandlerFunc) echo.HandlerFunc {
 		file, err := c.FormFile("photo")
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err)
+		}
+
+		ext := filepath.Ext(file.Filename)
+		if ext != ".png" || ext != ".jpg" || ext != ".jpeg" || ext != ".webp" {
+			return c.JSON(http.StatusBadRequest, "The file extension is wrong. Allowed file extensions are images (.png, .jpg, .jpeg, .webp)")
 		}
 
 		src, err := file.Open()
